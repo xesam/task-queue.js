@@ -1,0 +1,19 @@
+{
+  "name": "task-queue",
+  "version": "0.0.1",
+  "description": "a simple javascript task queue",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xesam/task-queue.git"
+  },
+  "author": "xiaopingyuan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xesam/task-queue/issues"
+  },
+  "homepage": "https://github.com/xesam/task-queue#readme"
+}
