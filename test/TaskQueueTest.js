@@ -57,3 +57,11 @@ taskQ1.add(function (cb) {
 setTimeout(() => {
     taskQ1.cancel(TaskFilter.createTagFilter('tag2'));
 }, 4000);
+
+setTimeout(() => {
+    taskQ1.add(function (cb) {
+        setTimeout(() => {
+            cb(null, {msg: 'this is fn2 task'});
+        }, 2000);
+    });
+}, 10000);
