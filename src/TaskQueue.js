@@ -1,4 +1,11 @@
+const Events = require('./Events');
 const Task = require('./Task');
+
+const Status = {
+    STOPPED: 0,
+    IDLE: 1,
+    RUNNING: 2
+};
 
 class TaskQueue {
 
@@ -6,8 +13,7 @@ class TaskQueue {
         this.name = name;
         this.seqCount = 0;
         this.tasks = [];
-        this.started = false;
-        this.running = false;
+        this.status = Status.STOPPED;
     }
 
     _nextTask() {
@@ -19,27 +25,27 @@ class TaskQueue {
     }
 
     _onCompleted(task, err, data) {
-        this.running = false;
+        this.status = Status.IDLE;
         if (!task.canceled) {
-            task.onCompleted(err, data);
+            task.onEvent(Events.COMPLETE, {err, data});
         }
     }
 
     _perform() {
-        if (!this.started || this.running) {
+        if (this.status !== Status.IDLE) {
             return;
         }
         const task = this._nextTask();
         if (task) {
-            this.running = true;
-            const cb = (err, data) => {
+            this.status = Status.RUNNING;
+            const next = (err, data) => {
                 this._onCompleted(task, err, data);
                 if (!err) {
                     this._perform();
                 }
             };
-            task.onStarted();
-            const p = task.perform(cb);
+            task.onEvent(Events.START);
+            const p = task.perform(next);
             if (p instanceof Promise) {
                 p.then((data) => {
                     this._onCompleted(task, null, data);
@@ -48,6 +54,8 @@ class TaskQueue {
                     this._onCompleted(task, err);
                 });
             }
+        } else {
+            this.status = Status.IDLE;
         }
     }
 
@@ -58,12 +66,12 @@ class TaskQueue {
     }
 
     start() {
-        this.started = true;
+        this.status = Status.IDLE;
         this._perform();
     }
 
     stop() {
-        this.started = false;
+        this.status = Status.STOPPED;
     }
 
     add(task) {
@@ -79,16 +87,15 @@ class TaskQueue {
     }
 
     remove(taskFilter) {
-        this.tasks = this.tasks.filter(function () {
-            return !taskFilter(...arguments);
+        this.tasks = this.tasks.filter(task => {
+            return !taskFilter(task);
         });
     }
 
     cancel(taskFilter) {
         const cancelTasks = this.tasks.filter(taskFilter);
-        this.remove(taskFilter);
-        cancelTasks.forEach(ele => {
-            ele.cancel();
+        cancelTasks.forEach(task => {
+            task.cancel();
         });
     }
 }

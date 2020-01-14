@@ -1,5 +1,5 @@
 const createTagFilter = (targetTag) => {
-    return (task) => {
+    return task => {
         return task.tag === targetTag;
     };
 };

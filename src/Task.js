@@ -1,5 +1,10 @@
+const Events = require('./Events');
+
+const DEFAULT_PRIORITY = -1;
+const DEFAULT_TAG = Symbol('');
+
 class Task {
-    constructor(job, {priority = 0, tag = ''} = {}) {
+    constructor(job, {priority = DEFAULT_PRIORITY, tag = DEFAULT_TAG} = {}) {
         this._id = -1;
         this.priority = priority;
         this.tag = tag;
@@ -19,23 +24,15 @@ class Task {
                 return ele._id === this._id;
             });
         }
-        this.onCanceled();
+        this.onEvent(Events.CANCEL);
     }
 
-    onStarted() {
-        console.log(this._id, this.priority, new Date().toUTCString(), 'onStarted');
+    perform(next) {
+        return this.job(next);
     }
 
-    onCompleted(err, data) {
-        console.log(this._id, this.priority, new Date().toUTCString(), 'onCompleted', data);
-    }
-
-    onCanceled() {
-        console.log(this._id, this.priority, new Date().toUTCString(), 'onCanceled');
-    }
-
-    perform(cb) {
-        return this.job(cb);
+    onEvent(event, data) {
+        console.log(`_id=${this._id},priority=${this.priority},event=${event}, data=${JSON.stringify(data)}`);
     }
 }
 
