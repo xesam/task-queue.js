@@ -1,7 +1,7 @@
 const Events = {
-    START: 0,
-    COMPLETE: 1,
-    CANCEL: 2,
+    START: 'start',
+    COMPLETE: 'complete',
+    CANCEL: 'cancel',
 };
 
 module.exports = Events;

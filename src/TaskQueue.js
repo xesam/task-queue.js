@@ -2,9 +2,9 @@ const Events = require('./Events');
 const Task = require('./Task');
 
 const Status = {
-    STOPPED: 0,
-    IDLE: 1,
-    RUNNING: 2
+    STOPPED: 'stopped',
+    IDLE: 'idle',
+    RUNNING: 'running'
 };
 
 class TaskQueue {
@@ -29,6 +29,9 @@ class TaskQueue {
         if (!task.canceled) {
             task.onEvent(Events.COMPLETE, {err, data});
         }
+        if (!err) {
+            this._perform();
+        }
     }
 
     _perform() {
@@ -38,18 +41,14 @@ class TaskQueue {
         const task = this._nextTask();
         if (task) {
             this.status = Status.RUNNING;
-            const next = (err, data) => {
+            const done = (err, data) => {
                 this._onCompleted(task, err, data);
-                if (!err) {
-                    this._perform();
-                }
             };
             task.onEvent(Events.START);
-            const p = task.perform(next);
+            const p = task.perform(done);
             if (p instanceof Promise) {
-                p.then((data) => {
+                p.then(data => {
                     this._onCompleted(task, null, data);
-                    this._perform();
                 }).catch(err => {
                     this._onCompleted(task, err);
                 });
@@ -87,16 +86,15 @@ class TaskQueue {
     }
 
     remove(taskFilter) {
-        this.tasks = this.tasks.filter(task => {
-            return !taskFilter(task);
-        });
+        this.tasks = this.tasks.filter(task => !taskFilter(task));
+        return this;
     }
 
     cancel(taskFilter) {
-        const cancelTasks = this.tasks.filter(taskFilter);
-        cancelTasks.forEach(task => {
+        this.tasks.filter(taskFilter).forEach(task => {
             task.cancel();
         });
+        return this;
     }
 }
 

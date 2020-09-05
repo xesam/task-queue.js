@@ -27,8 +27,8 @@ class Task {
         this.onEvent(Events.CANCEL);
     }
 
-    perform(next) {
-        return this.job(next);
+    perform(done) {
+        return this.job(done);
     }
 
     onEvent(event, data) {
